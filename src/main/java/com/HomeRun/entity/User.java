@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor // 롬복: 기본 생성자를 자동으로 만들어줌
 @Table(name = "users")
-
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // MySQL의 Auto Increment를 사용하여 ID를 1씩 자동 증가시킵니다.
     private Long id;
@@ -21,13 +21,17 @@ public class User {
     @Column(nullable = false)
     private String name;
 
+    @Column
+    private String password;
+
     @Column(nullable = false)
     private String role;
 
     @Builder
-    public User(String email, String name, String role) {
+    public User(String email, String name, String password, String role) {
         this.email = email;
         this.name = name;
+        this.password = password;
         this.role = role;
     }
 
