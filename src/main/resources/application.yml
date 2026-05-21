@@ -3,3 +3,6 @@ spring:
     name: HomeRun
   #profiles:
     #active: local
+
+app:
+  version: "1.0.0"
