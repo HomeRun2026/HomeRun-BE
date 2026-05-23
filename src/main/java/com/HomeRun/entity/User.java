@@ -22,6 +22,9 @@ public class User {
     private String name;
 
     @Column
+    private String nickname;
+
+    @Column
     private String password;
 
     @Column(nullable = false)
@@ -33,6 +36,10 @@ public class User {
         this.name = name;
         this.password = password;
         this.role = role;
+    }
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
     }
 
 }
