@@ -38,7 +38,15 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login**", "/api/token-test", "/api/auth/**").permitAll() // 토큰 테스트 URL은 통과시켜 줍니다.
+                        .requestMatchers(
+                                "/",
+                                "/login**",
+                                "/api/token-test",
+                                "/api/auth/**",
+                                "/v3/api-docs/**",     // Swagger 데이터
+                                "/swagger-ui/**",      // Swagger UI 화면
+                                "/swagger-ui.html"     // Swagger UI 진입점
+                        ).permitAll() // 토큰 테스트 URL은 통과시켜 줍니다.
                         .anyRequest().authenticated()
                 )
 

@@ -1,5 +1,6 @@
 package com.HomeRun.security;
 
+import com.HomeRun.entity.Role;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
@@ -15,8 +16,14 @@ public class JwtProvider {
     @Value("${jwt.secret}")
     private String secretKeyString;
 
-    @Value("${jwt.expiration}")
-    private long tokenValidTime;
+    //@Value("${jwt.expiration}")
+    //private long tokenValidTime;
+
+    @Value("${jwt.access-expiration}")
+    private long accessTokenValidTime;
+
+    @Value("${jwt.refresh-expiration}")
+    private long refreshTokenValidTime;
 
     private Key secretKey;
 
@@ -27,7 +34,7 @@ public class JwtProvider {
     }
 
     // JWT 토큰 생성 메서드
-    public String createToken(String email, String role) {
+    public String createAccessToken(String email, String role) {
         Claims claims = Jwts.claims().setSubject(email); // 토큰의 주인을 이메일로 설정
         claims.put("role", role); // 권한 정보 추가
 
@@ -35,8 +42,19 @@ public class JwtProvider {
         return Jwts.builder()
                 .setClaims(claims) // 정보 저장
                 .setIssuedAt(now) // 토큰 발행 시간
-                .setExpiration(new Date(now.getTime() + tokenValidTime)) // 토큰 만료 시간
+                .setExpiration(new Date(now.getTime() + accessTokenValidTime)) // 토큰 만료 시간
                 .signWith(secretKey, SignatureAlgorithm.HS256) // 암호화 알고리즘과 비밀키 셋팅
+                .compact();
+    }
+
+    // 2. Refresh Token 생성 (권한 정보 불필요, 이메일만으로 식별)
+    public String createRefreshToken(String email) {
+        Date now = new Date();
+        return Jwts.builder()
+                .setSubject(email)
+                .setIssuedAt(now)
+                .setExpiration(new Date(now.getTime() + refreshTokenValidTime))
+                .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
     }
 

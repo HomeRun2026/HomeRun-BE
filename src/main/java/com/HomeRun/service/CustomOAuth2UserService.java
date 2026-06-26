@@ -1,6 +1,6 @@
 package com.HomeRun.service;
 
-import com.HomeRun.entity.User;
+import com.HomeRun.entity.*;
 import com.HomeRun.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -27,7 +27,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         // 2. 구글이 넘겨준 데이터(이름, 이메일 등)를 Map 형태로 추출합니다.
         Map<String, Object> attributes = oAuth2User.getAttributes();
         String email = (String) attributes.get("email");
-        String name = (String) attributes.get("name");
+        String nickname = (String) attributes.get("name");
 
         // 3. 우리 DB에 이 이메일이 있는지 확인합니다.
         Optional<User> userOptional = userRepository.findByEmail(email);
@@ -36,9 +36,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             // 4. DB에 없다면 최초 로그인! 즉, 회원가입을 진행합니다.
             User newUser = User.builder()
                     .email(email)
-                    .name(name)
-                    .role("ROLE_USER")
+                    .nickname(nickname)
+                    .role(Role.GUEST)
                     .build();
+
             userRepository.save(newUser); // DB에 쏙 저장합니다.
         }
 
