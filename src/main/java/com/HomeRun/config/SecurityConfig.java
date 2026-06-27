@@ -43,13 +43,11 @@ public class SecurityConfig {
                                 "/login**",
                                 "/api/token-test",
                                 "/api/auth/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/v3/api-docs/**",
-                                "/api-docs/**")
-                        .permitAll() // 토큰 테스트 및 스웨거 URL은 통과시켜 줍니다.
-                        .anyRequest()
-                        .authenticated()
+                                "/v3/api-docs/**",     // Swagger 데이터
+                                "/swagger-ui/**",      // Swagger UI 화면
+                                "/swagger-ui.html"     // Swagger UI 진입점
+                        ).permitAll() // 토큰 테스트 URL은 통과시켜 줍니다.
+                        .anyRequest().authenticated()
                 )
 
                 .oauth2Login(oauth2 -> oauth2

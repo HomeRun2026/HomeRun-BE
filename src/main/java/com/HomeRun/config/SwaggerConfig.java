@@ -13,21 +13,25 @@ public class SwaggerConfig {
 
     @Bean
     public OpenAPI openAPI() {
-        String securitySchemeName = "bearerAuth";
+        // 1. JWT 토큰을 위한 보안 스키마(규칙) 설정
+        String jwtSchemeName = "jwtAuth";
+        SecurityRequirement securityRequirement = new SecurityRequirement().addList(jwtSchemeName);
 
-        // API 요청 헤더에 토큰을 요구하도록 설정
-        SecurityRequirement securityRequirement = new SecurityRequirement().addList(securitySchemeName);
-
-        // Security 스키마 설정 (Bearer 토큰 방식)
         Components components = new Components()
-                .addSecuritySchemes(securitySchemeName, new SecurityScheme()
-                        .name(securitySchemeName)
-                        .type(SecurityScheme.Type.HTTP)
-                        .scheme("bearer")
-                        .bearerFormat("JWT"));
+                .addSecuritySchemes(jwtSchemeName, new SecurityScheme()
+                        .name(jwtSchemeName)
+                        .type(SecurityScheme.Type.HTTP) // HTTP 방식
+                        .scheme("bearer")               // Bearer 토큰 방식
+                        .bearerFormat("JWT"));          // 토큰 포맷은 JWT
+
+        // 2. Swagger 화면에 보여질 API 문서 기본 정보 설정
+        Info info = new Info()
+                .title("버스 막차 알리미 API 명세서")
+                .description("HomeRun 프로젝트의 백엔드 API 문서 및 테스트 환경입니다.")
+                .version("v1.0.0");
 
         return new OpenAPI()
-                .info(new Info().title("HomeRun API 명세서").version("v1.0.0"))
+                .info(info)
                 .addSecurityItem(securityRequirement)
                 .components(components);
     }

@@ -18,9 +18,6 @@ public class User {
     @Column(nullable = false, unique = true) // 이메일은 필수이며, 중복X
     private String email;
 
-    @Column(nullable = false)
-    private String name;
-
     @Column
     private String nickname;
 
@@ -28,18 +25,26 @@ public class User {
     private String password;
 
     @Column(nullable = false)
-    private String role;
+    private String nickname;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
 
     @Builder
-    public User(String email, String name, String password, String role) {
+    public User(String email, String password, String nickname, Role role) {
         this.email = email;
-        this.name = name;
         this.password = password;
+        this.nickname = nickname;
         this.role = role;
     }
 
-    public void updateNickname(String nickname) {
-        this.nickname = nickname;
+    public void upgradeToUser() {
+        this.role = Role.USER;
+    }
+
+    public void updatePassword(String newPassword) {
+        this.password = newPassword;
     }
 
 }

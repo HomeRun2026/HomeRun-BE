@@ -1,10 +1,18 @@
 package com.HomeRun.controller;
 
-import com.HomeRun.dto.AuthDto;
-import com.HomeRun.service.AuthService;
+import com.HomeRun.common.error.ErrorCode;
+import com.HomeRun.common.exception.GlobalException;
+import com.HomeRun.common.response.ApiResponse;
+import com.HomeRun.dto.auth.*;
+import com.HomeRun.service.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -12,28 +20,91 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final EmailService emailService;
 
     // POST /api/auth/signup (회원가입)
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(@RequestBody AuthDto.SignupRequest request) {
-        try {
-            authService.signupUser(request);
-            return ResponseEntity.ok("회원가입이 완료되었습니다.");
-        } catch (IllegalArgumentException e) {
-            // 에러 발생 시 400 Bad Request 에러 메시지 반환
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<ApiResponse<Void>> signup(@Valid @RequestBody SignupRequestDto request) {
+
+        authService.signup(request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED) // 201 Created
+                .body(ApiResponse.success());
+
+    }
+
+    // ??
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<String> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        // 발생한 에러들 중에서 첫 번째 에러 메시지("올바른 이메일 형식이 아닙니다." 등)를 추출합니다.
+        String errorMessage = ex.getBindingResult()
+                                .getAllErrors()
+                                .get(0)
+                                .getDefaultMessage();
+
+        // 400 Bad Request 상태 코드와 함께 메시지 반환
+        return ResponseEntity
+                .badRequest()
+                .body(errorMessage);
     }
 
     // POST /api/auth/login (로그인)
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody AuthDto.LoginRequest request) {
-        try {
-            // 로그인이 성공하면 만들어진 JWT 토큰을 반환
-            String token = authService.login(request);
-            return ResponseEntity.ok(token);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<ApiResponse<TokenResponseDto>> login(@RequestBody LoginRequestDto request) {
+
+        TokenResponseDto token = authService.login(request);
+
+        return ResponseEntity.ok(ApiResponse.success(token));
     }
+
+    // 토큰 재발급 API (만료되었을 때 모바일 앱이 호출)
+    @PostMapping("/reissue")
+    public ResponseEntity<ApiResponse<TokenResponseDto>> reissue(@RequestBody ReissueRequestDto request) {
+
+        TokenResponseDto tokenResponse = authService.reissueToken(request.getRefreshToken());
+
+        return ResponseEntity.ok(ApiResponse.success(tokenResponse));
+    }
+
+    // POST /api/auth/signup/consent
+    @PostMapping("/signup/consent")
+    public ResponseEntity<ApiResponse<TokenResponseDto>> processConsent(@RequestBody ConsentRequestDto request, Principal principal){
+
+        // 토큰 없이 접근했거나, 잘못된 토큰인 경우
+        if (principal == null) {
+            throw new GlobalException(ErrorCode.HANDLE_ACCESS_DENIED, "인증되지 않은 사용자입니다.");
+        }
+
+        String email = principal.getName();
+        TokenResponseDto tokenResponse = authService.processConsent(email, request);
+
+        return ResponseEntity.ok(ApiResponse.success(tokenResponse));
+
+    }
+
+    @PostMapping("/email/send")
+    public ResponseEntity<ApiResponse<Void>> sendVerificationEmail(@RequestBody EmailSendRequestDto request) {
+
+        emailService.sendVerificationCode(request.getEmail());
+
+        return ResponseEntity.ok(ApiResponse.success());
+    }
+
+    @PostMapping("/email/verify")
+    public ResponseEntity<ApiResponse<Void>> verifyEmailCode(@RequestBody EmailVerifyRequestDto request) {
+
+        emailService.verifyCode(request.getEmail(), request.getCode());
+
+        return ResponseEntity.ok(ApiResponse.success());
+    }
+
+    @PostMapping("/password/reset")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody PasswordResetRequestDto request){
+
+        authService.resetPassword(request);
+
+        return ResponseEntity.ok(ApiResponse.success());
+    }
+
 }
