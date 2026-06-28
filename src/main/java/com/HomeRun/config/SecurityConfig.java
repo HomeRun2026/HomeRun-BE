@@ -1,8 +1,6 @@
 package com.HomeRun.config;
 
-import com.HomeRun.security.JwtFilter;
-import com.HomeRun.security.JwtProvider;
-import com.HomeRun.security.OAuth2SuccessHandler;
+import com.HomeRun.security.*;
 import com.HomeRun.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -23,6 +21,8 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final JwtProvider jwtProvider;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -56,6 +56,12 @@ public class SecurityConfig {
                         )
                         // 💡 중요: 로그인 성공 시 기본 URL로 가는 대신, 우리가 만든 핸들러가 작동하도록 설정합니다.
                         .successHandler(oAuth2SuccessHandler)
+                )
+
+                // 💡 인증 인가 실패 시 처리 핸들러 등록
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler)
                 )
 
                 // 💡 중요: 스프링 기본 인증 필터가 작동하기 전에, 우리가 만든 JwtFilter를 먼저 거치도록 설정합니다.

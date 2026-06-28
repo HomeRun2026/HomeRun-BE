@@ -85,6 +85,15 @@ public class GlobalExceptionHandler {
                 ErrorCode.METHOD_NOT_ALLOWED.getCode(), ErrorCode.METHOD_NOT_ALLOWED.getMessage());
     }
 
+    /** IllegalArgumentException 처리 (잘못된 요청 파라미터 등) */
+    @ExceptionHandler(IllegalArgumentException.class)
+    protected ApiResponse<Void> handleIllegalArgumentException(
+            IllegalArgumentException e, HttpServletResponse response) {
+        log.error("IllegalArgumentException: {}", e.getMessage(), e);
+        response.setStatus(ErrorCode.INVALID_INPUT_VALUE.getStatus().value());
+        return ApiResponse.error(ErrorCode.INVALID_INPUT_VALUE.getCode(), e.getMessage());
+    }
+
     /** 그 외 모든 예외 처리 */
     @ExceptionHandler(Exception.class)
     protected ApiResponse<Void> handleException(Exception e, HttpServletResponse response) {

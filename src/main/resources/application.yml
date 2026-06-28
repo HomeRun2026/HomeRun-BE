@@ -1,5 +1,8 @@
 spring:
   application:
     name: HomeRun
-  profiles:
-    active: local
+  #profiles:
+    #active: local
+
+app:
+  version: "1.0.0"
